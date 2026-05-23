@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
-from types import Traversable
+from importlib.resources.abc import Traversable
 
 import matplotlib.pyplot as plt
 import numpy as np
