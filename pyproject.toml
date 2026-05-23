@@ -1,0 +1,62 @@
+
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "veseg"
+version = "0.1.0"
+description = "Vascular segmentation toolkit for microscopy and visible-light vessel images"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+	{name = "Mohammed Tazwar"},
+]
+keywords = [
+	"segmentation",
+	"medical imaging",
+	"vascular",
+	"deep learning",
+	"u-net",
+	"computer vision",
+]
+classifiers = [
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.10",
+	"License :: OSI Approved :: MIT License",
+	"Operating System :: OS Independent",
+	"Topic :: Scientific/Engineering :: Artificial Intelligence",
+	"Topic :: Scientific/Engineering :: Image Processing",
+]
+
+dependencies = [
+	"numpy",
+	"torch",
+	"Pillow",
+	"matplotlib",
+]
+
+
+[project.optional-dependencies]
+dev = [
+	"pytest",
+	"pytest-cov",
+]
+
+
+[project.urls]
+Homepage = "https://github.com/HARDIntegral/VeSeg"
+Repository = "https://github.com/HARDIntegral/VeSeg"
+Issues = "https://github.com/HARDIntegral/VeSeg/issues"
+
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["veseg*"]
