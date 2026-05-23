@@ -47,6 +47,10 @@ dev = [
 ]
 
 
+[tool.setuptools.package-data]
+veseg = ["checkpoints/*.pt"]
+
+
 [project.urls]
 Homepage = "https://github.com/HARDIntegral/VeSeg"
 Repository = "https://github.com/HARDIntegral/VeSeg"

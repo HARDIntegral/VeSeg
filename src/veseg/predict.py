@@ -1,5 +1,3 @@
-
-
 """
 High-level inference API for VeSeg.
 
@@ -11,7 +9,9 @@ preprocessing, inference, and postprocessing logic.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from importlib.resources import files
 from pathlib import Path
+from types import Traversable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,11 +35,28 @@ RED = "red_vessels"
 
 DEFAULT_IMAGE_SIZE = 256
 DEFAULT_THRESHOLD = 0.70
-DEFAULT_CHECKPOINT_PATH = Path("checkpoints/vessmap_unet.pt")
+DEFAULT_CHECKPOINT_PATH = files("veseg").joinpath("checkpoints/vessmap_unet.pt")
 
 
 
 _MODEL_CACHE: dict[tuple[str, str], UNet] = {}
+
+
+def resolve_checkpoint_path(checkpoint_path: str | Path | Traversable) -> Path | Traversable:
+	"""
+	Resolve the model checkpoint path.
+
+	The default checkpoint is packaged inside veseg/checkpoints. A user can still
+	pass an explicit local path to override the bundled model.
+	"""
+
+	if isinstance(checkpoint_path, Path):
+		return checkpoint_path
+
+	if isinstance(checkpoint_path, str):
+		return Path(checkpoint_path)
+
+	return checkpoint_path
 
 @dataclass
 class PredictionResult:
@@ -231,7 +248,7 @@ def preprocess_image(
 
 
 def load_model(
-	checkpoint_path: str | Path = DEFAULT_CHECKPOINT_PATH,
+	checkpoint_path: str | Path | Traversable = DEFAULT_CHECKPOINT_PATH,
 	device: torch.device | None = None,
 ) -> UNet:
 	"""
@@ -239,14 +256,18 @@ def load_model(
 	"""
 
 	device = device or get_device()
-	checkpoint_path = Path(checkpoint_path)
-	cache_key = (str(checkpoint_path.resolve()), str(device))
+	checkpoint_path = resolve_checkpoint_path(checkpoint_path)
+	cache_key = (str(checkpoint_path), str(device))
+
+	if not checkpoint_path.exists():
+		raise FileNotFoundError(
+			f"Could not find checkpoint: {checkpoint_path}. "
+			"If you installed VeSeg from GitHub, make sure "
+			"src/veseg/checkpoints/vessmap_unet.pt is included in the package."
+		)
 
 	if cache_key in _MODEL_CACHE:
 		return _MODEL_CACHE[cache_key]
-
-	if not checkpoint_path.exists():
-		raise FileNotFoundError(f"Could not find checkpoint: {checkpoint_path}")
 
 	model = UNet(in_channels=1, out_channels=1).to(device)
 	model.load_state_dict(torch.load(checkpoint_path, map_location=device))
@@ -259,7 +280,7 @@ def load_model(
 def predict(
 	path: str | Path,
 	mode: str = ENHANCED_INVERTED,
-	checkpoint_path: str | Path = DEFAULT_CHECKPOINT_PATH,
+	checkpoint_path: str | Path | Traversable = DEFAULT_CHECKPOINT_PATH,
 	threshold: float = DEFAULT_THRESHOLD,
 	min_neighbors: int = 2,
 	image_size: int = DEFAULT_IMAGE_SIZE,
