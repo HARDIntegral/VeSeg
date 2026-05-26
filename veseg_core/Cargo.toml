@@ -1,0 +1,14 @@
+[package]
+name = "veseg_core"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "veseg_core"
+crate-type = ["cdylib"]
+
+[dependencies]
+ndarray = "0.17"
+numpy = "0.28"
+pyo3 = { version = "0.28", features = ["extension-module"] }
+rayon = "1.10"

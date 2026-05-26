@@ -1,10 +1,9 @@
-
-
-
 # Python
 __pycache__/
 *.py[cod]
 *.so
+*.egg-info/
+.eggs/
 
 # Virtual environments
 .venv/
@@ -14,10 +13,8 @@ env/
 # Build artifacts
 build/
 dist/
-*.egg-info/
-.eggs/
 
-# Testing / coverage
+# Testing
 .pytest_cache/
 .coverage
 htmlcov/
@@ -25,19 +22,19 @@ htmlcov/
 # Jupyter
 .ipynb_checkpoints/
 
-# macOS
-.DS_Store
-
 # IDEs
 .vscode/
 .idea/
 
-# Datasets (keep local)
+# macOS
+.DS_Store
+
+# Datasets
 data/
 datasets/
 VessMAP/
 
-# Trained models / checkpoints
+# Models
 models/
 weights/
 checkpoints/
@@ -45,9 +42,13 @@ checkpoints/
 *.pth
 *.onnx
 
-# Logs
+# Logs / temp
 *.log
-
-# Temporary files
 *.tmp
 *.bak
+
+# Rust + Maturin
+/target/
+/veseg_core/target/
+*.dylib
+Cargo.lock

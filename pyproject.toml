@@ -1,8 +1,6 @@
-
-
 [build-system]
-requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["maturin>=1.8,<2.0"]
+build-backend = "maturin"
 
 
 [project]
@@ -47,20 +45,23 @@ dev = [
 ]
 
 
+
+[tool.maturin]
+manifest-path = "veseg_core/Cargo.toml"
+python-source = "src"
+module-name = "veseg.veseg_core"
+features = ["pyo3/extension-module"]
+include = [
+	"src/veseg/checkpoints/*.pt",
+]
+
 [tool.setuptools.package-data]
-veseg = ["checkpoints/*.pt"]
+veseg = [
+	"checkpoints/*.pt",
+]
 
 
 [project.urls]
 Homepage = "https://github.com/HARDIntegral/VeSeg"
 Repository = "https://github.com/HARDIntegral/VeSeg"
 Issues = "https://github.com/HARDIntegral/VeSeg/issues"
-
-
-[tool.setuptools.package-dir]
-"" = "src"
-
-
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["veseg*"]

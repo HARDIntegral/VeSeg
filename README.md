@@ -1,7 +1,6 @@
-
 # VeSeg
 
-VeSeg is a Python package for biomedical vascular segmentation using deep learning. The package generates vessel masks from microscopy, histology, and visible-light vascular images through a pretrained U-Net segmentation pipeline.
+VeSeg is a Python package for vascular segmentation and vessel geometry extraction. The package combines a pretrained U-Net with a Rust backend to generate vessel masks, skeletons, vascular graphs, and radius estimates from microscopy and visible-light vascular images.
 
 The long-term purpose of VeSeg is to convert raw vascular images into representations usable for:
 
@@ -9,9 +8,33 @@ The long-term purpose of VeSeg is to convert raw vascular images into representa
 - Tissue diffusion modeling
 - Vascular topology extraction
 - Vessel skeletonization and graph generation
-- Vessel diameter estimation
+- Vessel radius and diameter estimation
 - Biomedical image analysis
-- Future blood flow and transport simulations
+- Future blood flow and coupled transport simulations
+
+---
+
+## Pipeline
+
+```text
+Image
+↓
+Preprocessing
+↓
+U-Net segmentation
+↓
+Binary vessel mask
+↓
+Skeletonization (Rust)
+↓
+Distance transform
+↓
+Graph extraction
+↓
+Radius estimation
+↓
+Simulation-ready geometry
+```
 
 ---
 
@@ -33,38 +56,28 @@ Current:
 - Public prediction API
 - Dataset augmentation pipeline
 - Threshold sweep optimization during validation
-
-Planned:
-
-- Skeletonization
+- Rust-accelerated skeletonization
 - Vessel graph extraction
 - Vessel radius estimation
+- Bundled geometry extraction backend
+
+- Distance transform generation
+- Radius-annotated edge tables
+- Vessel reconstruction from skeleton + radius estimates
 
 ---
 
 ## Installation
 
-### User installation
-
-Install directly from GitHub:
+### Install from GitHub
 
 ```bash
 pip install git+https://github.com/HARDIntegral/VeSeg.git
 ```
 
-Or:
-
-```bash
-git clone https://github.com/HARDIntegral/VeSeg.git
-cd VeSeg
-pip install .
-```
-
-Verify:
-
-```python
-import veseg
-```
+> **Note:** Prebuilt wheels and bundled binaries are currently tested primarily on Apple Silicon (ARM64 macOS). Installation on other systems may require compiling the Rust extension locally.
+>
+> For non-Apple Silicon systems or development workflows, the recommended installation method is the following development installation.
 
 ### Development installation
 
@@ -75,7 +88,14 @@ cd VeSeg
 python -m venv .venv
 source .venv/bin/activate
 
-pip install -e '.[dev]'
+pip install maturin
+maturin develop
+```
+
+Build wheel:
+
+```bash
+maturin build --release --out target/wheels
 ```
 
 Run tests:
@@ -88,18 +108,23 @@ pytest
 
 ## Quick Start
 
-Predict vessels from an image:
+Predict vessels and extract geometry:
 
 ```python
 import veseg
 
 result = veseg.predict(
 	"test_images/structure1.png",
-	mode=veseg.RED,
+	mode=veseg.ENHANCED_INVERTED,
 )
 
-result.show()
-result.save_mask("mask.png")
+mask, skeleton, distance_map, nodes, edges = (
+	veseg.extract_vessel_geometry(result.mask)
+)
+
+print("nodes:", nodes.shape)
+print("edges:", edges.shape)
+print("mean radii:", edges[:, 4])
 ```
 
 Scale masks:
@@ -115,6 +140,14 @@ Remove isolated false positives:
 clean = result.despeckle(min_neighbors=3)
 ```
 
+Radius estimates are returned inside the edge table:
+
+```python
+mean_radius = edges[:, 4]
+min_radius = edges[:, 5]
+max_radius = edges[:, 6]
+```
+
 ---
 
 ## Public API
@@ -123,10 +156,20 @@ Available:
 
 ```python
 veseg.predict()
+veseg.load_model()
+
+veseg.extract_vessel_geometry()
+veseg.build_vessel_geometry()
+veseg.build_vessel_graph()
+
+veseg.skeletonize_mask()
+veseg.distance_transform_mask()
+veseg.reconstruct_vessel_mask()
+
+veseg.postprocess_prediction()
 veseg.scale_mask()
 veseg.resize_mask()
 veseg.remove_specks()
-veseg.postprocess_prediction()
 ```
 
 Prediction modes:
@@ -192,25 +235,10 @@ Current tests include:
 
 ## Documentation
 
-Detailed package documentation:
+Detailed API documentation, parameters, return values, graph schemas, and examples:
 
 ```text
 DOCS.md
-```
-
----
-
-## Status
-
-VeSeg v0.1
-
-Current focus:
-
-```text
-segmentation
-→ skeletonization
-→ vascular graph extraction
-→ transport simulation
 ```
 
 ---
